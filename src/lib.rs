@@ -56,6 +56,7 @@ impl Game {
             white_pawn_attacks: [0; 64],
             black_pawn_attacks: [0; 64],
         };
+        game.initialize_move_table();
         game
     }
 
@@ -71,7 +72,7 @@ impl Game {
             "west" => (bit>>1)&not_h_file,
             "no_we" => (bit<<7)&not_h_file,
             "so_we" => (bit>>9)&not_h_file,
-            _ => bit
+            _ => panic!(),
         }
     }
 
@@ -109,8 +110,69 @@ impl Game {
     /// new positions of that piece. Don't forget to the rules for check. 
     /// 
     /// (optional) Don't forget to include en passent and castling.
-    pub fn get_possible_moves(&self, _postion: String) -> Option<Vec<String>> {
-        None
+    pub fn get_possible_moves(&self, position: u64) -> Vec<u64> {
+        let mut moves = Vec::new();
+        if position&self.pawn != 0 {
+            //Pawn
+            moves = self.pawn_moves(position);
+        } else {
+        }
+        moves
+    }
+
+    fn pawn_moves(&self, position: u64) -> Vec<u64> {
+        let mut moves = Vec::new();
+        if position&self.white != 0 {
+            //White
+            //Pawn push
+            let one_step_push = Game::one_step("north", position);
+            if one_step_push&self.empty != 0 {
+                moves.push(one_step_push);
+                let two_step_push = Game::one_step("north", one_step_push);
+                let rank_4: u64 = 0b00000000_00000000_00000000_00000000_11111111_00000000_00000000_00000000;
+                if two_step_push&self.empty&rank_4 != 0 {
+                    moves.push(two_step_push);
+                }
+            }
+            //Pawn capture.
+            let mut square_bit: u64 = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+            for i in self.white_pawn_attacks {
+                if square_bit == position {
+                    if i&self.black != 0 {
+                        moves.push(i&self.black);
+                    }
+                }
+                square_bit>>=1;
+            }
+            for i in &moves {
+                println!("{:b}", i);
+            }
+        } else if position&self.black != 0 {
+            //Black
+            //Pawn push
+            let one_step_push = Game::one_step("south", position);
+            if one_step_push&self.empty != 0 {
+                moves.push(one_step_push);
+                let two_step_push = Game::one_step("south", one_step_push);
+                let rank_5: u64 = 0b00000000_00000000_00000000_11111111_00000000_00000000_00000000_00000000;
+                if two_step_push&self.empty&rank_5 != 0 {
+                    moves.push(two_step_push);
+                }
+            }
+            //Pawn capture.
+            let mut square_bit: u64 = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+            for i in self.black_pawn_attacks {
+                if square_bit == position {
+                    if i&self.black != 0 {
+                        moves.push(i&self.white);
+                    }
+                }
+                square_bit>>=1;
+            }
+        } else {
+            panic!() //Not white nor black, Clear Error!
+        }
+        moves
     }
 }
 
@@ -279,5 +341,13 @@ mod tests {
         let bit: u64 =                              0b00000000_00000000_00000000_00000000_00100000_00000000_00000000_00000000;
         assert_eq!(Game::one_step("so_we", bit),    0b00000000_00000000_00000000_00000000_00000000_00010000_00000000_00000000);
         println!("ok");
+    }
+
+    #[test]
+    fn make_pawn_moves() {
+        println!();
+        let mut game = Game::new();
+        game.get_possible_moves(0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_00000000);
+        assert_eq!(1+1, 2);
     }
 }
