@@ -107,4 +107,21 @@ mod tests {
         let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
         assert_eq!(n, m.reverse_bits());
     }
+    #[test]
+    fn bishop_test() {
+        println!();
+        let mut game = Game::new();
+        let mut iter_bit: u64 =
+            0b00000000_00000000_10000000_00000000_00000000_00000000_00000000_00000000;
+        game.make_move(Game::get_position("c8"), iter_bit);
+        game.display_board(game.get_bishop_moves(iter_bit));
+        for _i in 0..32 {
+            game.make_move(iter_bit, iter_bit >> 1);
+            game.display_board(game.get_bishop_moves(iter_bit >> 1));
+            iter_bit >>= 1;
+        }
+        let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;
+        let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
+        assert_eq!(n, m.reverse_bits());
+    }
 }

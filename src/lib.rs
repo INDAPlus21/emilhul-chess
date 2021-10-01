@@ -85,38 +85,39 @@ impl Game {
                 0b11111111_00000000_00000000_00000000_00000000_00000000_00000000_00000000, // 8
             ],
             diagonal_mask: [
-                0b00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000001, // a1 -> a1
-                0b00000000_00000000_00000000_00000000_00000000_00000000_00000001_00000010, // *
-                0b00000000_00000000_00000000_00000000_00000000_00000001_00000010_00000100, // *
-                0b00000000_00000000_00000000_00000000_00000001_00000010_00000100_00001000, // *
-                0b00000000_00000000_00000000_00000001_00000010_00000100_00001000_00010000, // *
-                0b00000000_00000000_00000001_00000010_00000100_00001000_00010000_00100000, // *
-                0b00000000_00000001_00000010_00000100_00001000_00010000_00100000_01000000, // *
-                0b00000001_00000010_00000100_00001000_00010000_00100000_01000000_10000000, // h1 -> a8
-                0b00000010_00000100_00001000_00010000_00100000_01000000_10000000_00000000, // *
-                0b00000100_00001000_00010000_00100000_01000000_10000000_00000000_00000000, // *
-                0b00001000_00010000_00100000_01000000_10000000_00000000_00000000_00000000, // *
-                0b00010000_00100000_01000000_10000000_00000000_00000000_00000000_00000000, // *
-                0b00100000_01000000_10000000_00000000_00000000_00000000_00000000_00000000, // *
-                0b01000000_10000000_00000000_00000000_00000000_00000000_00000000_00000000, // *
-                0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000, // h8 -> h8
+                0b00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000001, // a1 -> a1 (0)
+                0b00000000_00000000_00000000_00000000_00000000_00000000_00000001_00000010, // * 1
+                0b00000000_00000000_00000000_00000000_00000000_00000001_00000010_00000100, // * 2
+                0b00000000_00000000_00000000_00000000_00000001_00000010_00000100_00001000, // * 3
+                0b00000000_00000000_00000000_00000001_00000010_00000100_00001000_00010000, // * 4
+                0b00000000_00000000_00000001_00000010_00000100_00001000_00010000_00100000, // * 5
+                0b00000000_00000001_00000010_00000100_00001000_00010000_00100000_01000000, // * 6
+                0b00000001_00000010_00000100_00001000_00010000_00100000_01000000_10000000, // h1 -> a8  (7)
+                0b00000010_00000100_00001000_00010000_00100000_01000000_10000000_00000000, // * 8
+                0b00000100_00001000_00010000_00100000_01000000_10000000_00000000_00000000, // * 9
+                0b00001000_00010000_00100000_01000000_10000000_00000000_00000000_00000000, // * 10
+                0b00010000_00100000_01000000_10000000_00000000_00000000_00000000_00000000, // * 11
+                0b00100000_01000000_10000000_00000000_00000000_00000000_00000000_00000000, // * 12
+                0b01000000_10000000_00000000_00000000_00000000_00000000_00000000_00000000, // * 13
+                0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000, // h8 -> h8 (14)
             ],
             anti_diagonal_mask: [
-                0b00000001_00000000_00000000_00000000_00000000_00000000_00000000_00000000, //h1 -> h1
-                0b00000010_00000001_00000000_00000000_00000000_00000000_00000000_00000000, // *
-                0b00000100_00000010_00000001_00000000_00000000_00000000_00000000_00000000, // *
-                0b00001000_00000100_00000010_00000001_00000000_00000000_00000000_00000000, // *
-                0b00010000_00001000_00000100_00000010_00000001_00000000_00000000_00000000, // *
-                0b00100000_00010000_00001000_00000100_00000010_00000001_00000000_00000000, // *
-                0b01000000_00100000_00010000_00001000_00000100_00000010_00000001_00000000, // *
-                0b10000000_01000000_00100000_00010000_00001000_00000100_00000010_00000001, //h8 -> a1
-                0b00000000_10000000_01000000_00100000_00010000_00001000_00000100_00000010, // *
-                0b00000000_00000000_10000000_01000000_00100000_00010000_00001000_00000100, // *
-                0b00000000_00000000_00000000_10000000_01000000_00100000_00010000_00001000, // *
-                0b00000000_00000000_00000000_00000000_10000000_01000000_00100000_00010000, // *
-                0b00000000_00000000_00000000_00000000_00000000_10000000_01000000_00100000, // *
-                0b00000000_00000000_00000000_00000000_00000000_00000000_10000000_01000000, // *
-                0b00000000_00000000_00000000_00000000_00000000_00000000_00000000_10000000, // a8 -> a8
+                // s/8 + 7 - s%8
+                0b00000000_00000000_00000000_00000000_00000000_00000000_00000000_10000000, // a8 -> a8 (0) s = 7
+                0b00000000_00000000_00000000_00000000_00000000_00000000_10000000_01000000, // * 1
+                0b00000000_00000000_00000000_00000000_00000000_10000000_01000000_00100000, // * 2
+                0b00000000_00000000_00000000_00000000_10000000_01000000_00100000_00010000, // * 3
+                0b00000000_00000000_00000000_10000000_01000000_00100000_00010000_00001000, // * 4
+                0b00000000_00000000_10000000_01000000_00100000_00010000_00001000_00000100, // * 5
+                0b00000000_10000000_01000000_00100000_00010000_00001000_00000100_00000010, // * 6
+                0b10000000_01000000_00100000_00010000_00001000_00000100_00000010_00000001, //h8 -> h8 (7)
+                0b01000000_00100000_00010000_00001000_00000100_00000010_00000001_00000000, // * 8
+                0b00100000_00010000_00001000_00000100_00000010_00000001_00000000_00000000, // * 9 ***
+                0b00010000_00001000_00000100_00000010_00000001_00000000_00000000_00000000, // * 10
+                0b00001000_00000100_00000010_00000001_00000000_00000000_00000000_00000000, // * 11
+                0b00000100_00000010_00000001_00000000_00000000_00000000_00000000_00000000, // * 12
+                0b00000010_00000001_00000000_00000000_00000000_00000000_00000000_00000000, // * 13
+                0b00000001_00000000_00000000_00000000_00000000_00000000_00000000_00000000, //h1 -> h1 (14)
             ],
         };
         game.initialize_move_tables();
@@ -241,6 +242,66 @@ impl Game {
                 self.rook ^= move_bit;
                 self.empty ^= position;
             }
+            // ################
+            //   WHITE BISHOP
+            // ################
+            if position & self.bishop != 0 {
+                if target & self.black != 0 {
+                    //A black piece is captured
+                    self.black ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.black == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.white != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.white ^= move_bit; // Moves the piece to the new square
+                self.bishop ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //    BLACK ROOK
+            // ################
+            if position & self.rook != 0 {
+                if target & self.black != 0 {
+                    // A white piece is captured
+                    self.black ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.white == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.white != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.black ^= move_bit; // Moves the piece to the new square
+                self.queen ^= move_bit;
+                self.empty ^= position;
+            }
         } else if position & self.black != 0 {
             // ################
             //    BLACK PAWN
@@ -302,6 +363,66 @@ impl Game {
                 self.rook ^= move_bit;
                 self.empty ^= position;
             }
+            // ################
+            //   BLACK BISHOP
+            // ################
+            if position & self.bishop != 0 {
+                if target & self.white != 0 {
+                    // A white piece is captured
+                    self.white ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.white == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.black != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.black ^= move_bit; // Moves the piece to the new square
+                self.bishop ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //   BLACK QUEEN
+            // ################
+            if position & self.queen != 0 {
+                if target & self.white != 0 {
+                    // A white piece is captured
+                    self.white ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.white == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.black != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.black ^= move_bit; // Moves the piece to the new square
+                self.queen ^= move_bit;
+                self.empty ^= position;
+            }
         } else {
             panic!("No piece in the given position!");
         }
@@ -330,9 +451,13 @@ impl Game {
             moves_pattern = self.get_pawn_moves(position);
         } else if position & self.rook != 0 {
             // Rook
-            //moves_pattern = self.get_rook_moves(position);
+            moves_pattern = self.get_rook_moves(position);
+        } else if position & self.bishop != 0 {
+            // Bishop
+            moves_pattern = self.get_bishop_moves(position);
+        } else if position & self.queen != 0 {
+            moves_pattern = self.get_queen_moves(position); // Simply calls rook and bishop functions.
         }
-        // Loop over every iter_bit (btw. rename to iter_bit) (unless you can iter over a binary???) if iter_bit&moves_bit != 0 -> add iter_bit to moves. (Should add every possible move for the piece as u64 with one bit as 1)
         let mut iter_bit: u64 =
             0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
         for _i in 0..64 {
@@ -433,6 +558,64 @@ impl Game {
         } else {
             panic!("No piece in the given position!");
         }
+        moves_bit
+    }
+
+    fn get_bishop_moves(&self, position: u64) -> u64 {
+        let moves_bit: u64;
+        let occupied = !self.empty;
+        let diagonal_mask = self.diagonal_mask
+            [(Game::get_int_position(position) / 8 + Game::get_int_position(position) % 8)];
+        let anti_diagonal_mask = self.anti_diagonal_mask
+            [(Game::get_int_position(position) / 8 + (7 - Game::get_int_position(position) % 8))];
+        if position & self.white != 0 {
+            //White
+            let random_bullshit: u64 =
+                0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+            let diagonal: u64 = (((occupied & diagonal_mask | random_bullshit) - (2 * position))
+                ^ ((occupied & diagonal_mask).reverse_bits()
+                    | random_bullshit - (2 * position.reverse_bits()))
+                .reverse_bits())
+                & diagonal_mask
+                & !random_bullshit
+                & !self.white;
+            let anti_diagonal: u64 = (((occupied & anti_diagonal_mask | random_bullshit)
+                - (2 * position))
+                ^ ((occupied & anti_diagonal_mask).reverse_bits()
+                    | random_bullshit - (2 * position.reverse_bits()))
+                .reverse_bits())
+                & anti_diagonal_mask
+                & !random_bullshit
+                & !self.white;
+            moves_bit = diagonal | anti_diagonal;
+        } else if position & self.black != 0 {
+            //Black
+            let random_bullshit: u64 =
+                0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+            let diagonal: u64 = (((occupied & diagonal_mask | random_bullshit) - (2 * position))
+                ^ ((occupied & diagonal_mask).reverse_bits()
+                    | random_bullshit - (2 * position.reverse_bits()))
+                .reverse_bits())
+                & !random_bullshit
+                & diagonal_mask
+                & !self.black;
+            let anti_diagonal: u64 = (((occupied & anti_diagonal_mask | random_bullshit)
+                - (2 * position))
+                ^ ((occupied & anti_diagonal_mask).reverse_bits()
+                    | random_bullshit - (2 * position.reverse_bits()))
+                .reverse_bits())
+                & !random_bullshit
+                & anti_diagonal_mask
+                & !self.black;
+            moves_bit = diagonal | anti_diagonal;
+        } else {
+            panic!("No piece in the given position!")
+        }
+        moves_bit
+    }
+
+    fn get_queen_moves(&self, position: u64) -> u64 {
+        let moves_bit: u64 = self.get_rook_moves(position) | self.get_bishop_moves(position);
         moves_bit
     }
 
