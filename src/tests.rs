@@ -30,6 +30,12 @@ mod tests {
             0b10100000_00000000_00000000_00000000_00000000_00000000_00000000_00000000
         );
         println!("ok");
+        print!("4... ");
+        assert_eq!(
+            game.knight_moves[0],
+            0b00000000_00100000_01000000_00000000_00000000_00000000_00000000_00000000
+        );
+        println!("ok");
     }
 
     #[test]
@@ -118,6 +124,77 @@ mod tests {
         for _i in 0..32 {
             game.make_move(iter_bit, iter_bit >> 1);
             game.display_board(game.get_bishop_moves(iter_bit >> 1));
+            iter_bit >>= 1;
+        }
+        let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;
+        let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
+        assert_eq!(n, m.reverse_bits());
+    }
+    #[test]
+    fn rook_test() {
+        println!();
+        let mut game = Game::new();
+        let mut iter_bit: u64 =
+            0b00000000_00000000_10000000_00000000_00000000_00000000_00000000_00000000;
+        game.make_move(Game::get_position("a8"), iter_bit);
+        game.display_board(game.get_rook_moves(iter_bit));
+        for _i in 0..32 {
+            game.make_move(iter_bit, iter_bit >> 1);
+            game.display_board(game.get_rook_moves(iter_bit >> 1));
+            iter_bit >>= 1;
+        }
+        let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;
+        let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
+        assert_eq!(n, m.reverse_bits());
+    }
+    #[test]
+    fn queen_test() {
+        //Further testing required. Seems like bishop works fine for white's side.
+        println!();
+        let mut game = Game::new();
+        let mut iter_bit: u64 =
+            0b00000000_00000000_10000000_00000000_00000000_00000000_00000000_00000000;
+        game.make_move(Game::get_position("d1"), iter_bit);
+        game.display_board(game.get_queen_moves(iter_bit));
+        for _i in 0..31 {
+            game.make_move(iter_bit, iter_bit >> 1);
+            game.display_board(game.get_queen_moves(iter_bit >> 1));
+            iter_bit >>= 1;
+        }
+        let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;
+        let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
+        assert_eq!(n, m.reverse_bits());
+    }
+    #[test]
+    fn knight_test() {
+        println!();
+        let mut game = Game::new();
+
+        let mut iter_bit: u64 =
+            0b00000000_00000000_10000000_00000000_00000000_00000000_00000000_00000000;
+        game.make_move(Game::get_position("b1"), iter_bit);
+        game.display_board(game.get_knight_moves(iter_bit));
+        for _i in 0..31 {
+            game.make_move(iter_bit, iter_bit >> 1);
+            game.display_board(game.get_knight_moves(iter_bit >> 1));
+            iter_bit >>= 1;
+        }
+        let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;
+        let m: u64 = 0b00000000_00000000_00000000_00000000_00000000_00000000_00100000_10010110;
+        assert_eq!(n, m.reverse_bits());
+    }
+    #[test]
+    fn king_test() {
+        println!();
+        let mut game = Game::new();
+
+        let mut iter_bit: u64 =
+            0b00000000_00000000_10000000_00000000_00000000_00000000_00000000_00000000;
+        game.make_move(Game::get_position("e1"), iter_bit);
+        game.display_board(game.get_king_moves(iter_bit));
+        for _i in 0..31 {
+            game.make_move(iter_bit, iter_bit >> 1);
+            game.display_board(game.get_king_moves(iter_bit >> 1));
             iter_bit >>= 1;
         }
         let n: u64 = 0b01101001_00000100_00000000_00000000_00000000_00000000_00000000_00000000;

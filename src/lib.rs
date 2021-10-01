@@ -17,7 +17,11 @@ pub enum GameState {
  */
 
 pub struct Game {
-    /* save board, active colour, ... */
+    /* save board, active colour, ...
+     * Then do checks and pins, porbably pretty easy. Promotion. Add turn timer.
+     *  If I have extra time first fix good representative unit tests,
+     * then document the code and lastly clean up the code. If all this is done great! Go to sleep, you've earned it :)
+     */
     state: GameState,
     turn: usize,
     // Bitboards
@@ -33,6 +37,8 @@ pub struct Game {
     // Move table
     white_pawn_attacks: [u64; 64],
     black_pawn_attacks: [u64; 64],
+    knight_moves: [u64; 64],
+    king_moves: [u64; 64],
     // Masks
     file_mask: [u64; 8],
     rank_mask: [u64; 8],
@@ -62,7 +68,8 @@ impl Game {
             // Inititalize move tables to 0. Generated in initalize_move_tables()
             white_pawn_attacks: [0; 64],
             black_pawn_attacks: [0; 64],
-
+            knight_moves: [0; 64],
+            king_moves: [0; 64],
             // Initialize masks
             file_mask: [
                 0b00000001_00000001_00000001_00000001_00000001_00000001_00000001_00000001, // a
@@ -155,6 +162,28 @@ impl Game {
         }
     }
 
+    fn horse_step(dir: &str, bit: u64) -> u64 {
+        let not_a_file: u64 =
+            0b11111110_11111110_11111110_11111110_11111110_11111110_11111110_11111110;
+        let not_a_b_file: u64 =
+            0b11111100_11111100_11111100_11111100_11111100_11111100_11111100_11111100;
+        let not_h_file: u64 =
+            0b01111111_01111111_01111111_01111111_01111111_01111111_01111111_01111111;
+        let not_g_h_file: u64 =
+            0b00111111_00111111_00111111_00111111_00111111_00111111_00111111_00111111;
+        match dir {
+            "no_no_ea" => (bit << 17) & not_a_file,
+            "no_ea_ea" => (bit << 10) & not_a_b_file,
+            "so_ea_ea" => (bit >> 6) & not_a_b_file,
+            "so_so_ea" => (bit >> 15) & not_a_file,
+            "no_no_we" => (bit << 15) & not_h_file,
+            "no_we_we" => (bit << 6) & not_g_h_file,
+            "so_we_we" => (bit >> 10) & not_g_h_file,
+            "so_so_we" => (bit >> 17) & not_h_file,
+            _ => panic!("Invalid direction"),
+        }
+    }
+
     /// Private helper function to initialize move-lookup tables. Called at the end of Game::new()
     fn initialize_move_tables(&mut self) {
         // White pawn attacks
@@ -170,6 +199,27 @@ impl Game {
         for i in 0..64 {
             self.black_pawn_attacks[i] =
                 Game::one_step("so_ea", iter_bit) | Game::one_step("so_we", iter_bit);
+            iter_bit >>= 1;
+        }
+        iter_bit = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+        for i in 0..64 {
+            self.knight_moves[i] = Game::horse_step("no_no_we", iter_bit)
+                | Game::horse_step("no_we_we", iter_bit)
+                | Game::horse_step("so_we_we", iter_bit)
+                | Game::horse_step("so_so_we", iter_bit)
+                | Game::horse_step("so_so_ea", iter_bit)
+                | Game::horse_step("so_ea_ea", iter_bit)
+                | Game::horse_step("no_ea_ea", iter_bit)
+                | Game::horse_step("no_no_ea", iter_bit)
+                | Game::horse_step("no_no_we", iter_bit);
+            iter_bit >>= 1;
+        }
+        iter_bit = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+        for i in 0..64 {
+            let row: u64 = Game::one_step("east", iter_bit) | Game::one_step("west", iter_bit);
+            let king_row: u64 = iter_bit | row;
+            self.king_moves[i] =
+                Game::one_step("north", king_row) | Game::one_step("south", king_row) ^ king_row;
             iter_bit >>= 1;
         }
     }
@@ -210,6 +260,36 @@ impl Game {
                 }
                 self.white ^= move_bit; // Moves the piece to the new square
                 self.pawn ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //   WHITE KNIGHT
+            // ################
+            if position & self.knight != 0 {
+                if target & self.black != 0 {
+                    //A black piece is captured
+                    self.black ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.black == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.white != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.white ^= move_bit; // Moves the piece to the new square
+                self.knight ^= move_bit;
                 self.empty ^= position;
             }
             // ################
@@ -273,9 +353,9 @@ impl Game {
                 self.empty ^= position;
             }
             // ################
-            //    BLACK ROOK
+            //   WHITE QUEEN
             // ################
-            if position & self.rook != 0 {
+            if position & self.queen != 0 {
                 if target & self.black != 0 {
                     // A white piece is captured
                     self.black ^= target; // Removes the piece
@@ -298,8 +378,38 @@ impl Game {
                 } else {
                     panic!("Attempting to move to non existing square!")
                 }
-                self.black ^= move_bit; // Moves the piece to the new square
+                self.white ^= move_bit; // Moves the piece to the new square
                 self.queen ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //    WHITE KING
+            // ################
+            if position & self.king != 0 {
+                if target & self.black != 0 {
+                    //A black piece is captured
+                    self.black ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.black == 0 {
+                        // If the black king is removed
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.white != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.white ^= move_bit; // Moves the piece to the new square
+                self.king ^= move_bit;
                 self.empty ^= position;
             }
         } else if position & self.black != 0 {
@@ -318,7 +428,6 @@ impl Game {
                     self.queen &= occupied;
                     self.king &= occupied;
                     if self.king & self.white == 0 {
-                        // If the black king is removed
                         panic!("Can't capture king")
                     }
                 } else if target & self.empty != 0 {
@@ -331,6 +440,35 @@ impl Game {
                 }
                 self.black ^= move_bit; // Moves the piece to the new square
                 self.pawn ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //   BLACK KNIGHT
+            // ################
+            if position & self.knight != 0 {
+                if target & self.white != 0 {
+                    //A black piece is captured
+                    self.white ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.white == 0 {
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.black != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.black ^= move_bit; // Moves the piece to the new square
+                self.knight ^= move_bit;
                 self.empty ^= position;
             }
             // ################
@@ -348,7 +486,6 @@ impl Game {
                     self.queen &= occupied;
                     self.king &= occupied;
                     if self.king & self.white == 0 {
-                        // If the black king is removed
                         panic!("Can't capture king")
                     }
                 } else if target & self.empty != 0 {
@@ -378,7 +515,6 @@ impl Game {
                     self.queen &= occupied;
                     self.king &= occupied;
                     if self.king & self.white == 0 {
-                        // If the black king is removed
                         panic!("Can't capture king")
                     }
                 } else if target & self.empty != 0 {
@@ -408,7 +544,6 @@ impl Game {
                     self.queen &= occupied;
                     self.king &= occupied;
                     if self.king & self.white == 0 {
-                        // If the black king is removed
                         panic!("Can't capture king")
                     }
                 } else if target & self.empty != 0 {
@@ -421,6 +556,35 @@ impl Game {
                 }
                 self.black ^= move_bit; // Moves the piece to the new square
                 self.queen ^= move_bit;
+                self.empty ^= position;
+            }
+            // ################
+            //    BLACK KING
+            // ################
+            if position & self.king != 0 {
+                if target & self.white != 0 {
+                    //A black piece is captured
+                    self.white ^= target; // Removes the piece
+                    let occupied = !self.empty;
+                    self.pawn &= occupied;
+                    self.knight &= occupied;
+                    self.bishop &= occupied;
+                    self.rook &= occupied;
+                    self.queen &= occupied;
+                    self.king &= occupied;
+                    if self.king & self.white == 0 {
+                        panic!("Can't capture king")
+                    }
+                } else if target & self.empty != 0 {
+                    //An empty square
+                    self.empty ^= target; // Makes the square occupied
+                } else if target & self.black != 0 {
+                    panic!("Attempting to capture a friendly piece")
+                } else {
+                    panic!("Attempting to move to non existing square!")
+                }
+                self.black ^= move_bit; // Moves the piece to the new square
+                self.king ^= move_bit;
                 self.empty ^= position;
             }
         } else {
@@ -443,12 +607,15 @@ impl Game {
     /// new positions of that piece. Don't forget to the rules for check.
     ///
     /// (optional) Don't forget to include en passent and castling.
-    pub fn get_possible_moves(&self, position: u64) -> Vec<u64> {
+    pub fn get_possible_moves(&mut self, position: u64) -> Vec<u64> {
         let mut moves = Vec::new();
-        let mut moves_pattern: u64 = 0;
+        let moves_pattern: u64;
         if position & self.pawn != 0 {
             //Pawn
             moves_pattern = self.get_pawn_moves(position);
+        } else if position & self.knight != 0 {
+            // Knight
+            moves_pattern = self.get_knight_moves(position)
         } else if position & self.rook != 0 {
             // Rook
             moves_pattern = self.get_rook_moves(position);
@@ -456,7 +623,15 @@ impl Game {
             // Bishop
             moves_pattern = self.get_bishop_moves(position);
         } else if position & self.queen != 0 {
+            self.rook ^= position;
+            self.bishop ^= position;
             moves_pattern = self.get_queen_moves(position); // Simply calls rook and bishop functions.
+            self.rook ^= position;
+            self.bishop ^= position;
+        } else if position & self.king != 0 {
+            moves_pattern = self.get_king_moves(position);
+        } else {
+            panic!("There is no piece in the given position!");
         }
         let mut iter_bit: u64 =
             0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
@@ -495,7 +670,6 @@ impl Game {
                 }
                 iter_bit >>= 1;
             }
-            println!("{:b}", moves_bit);
         } else if position & self.black != 0 {
             //Black
             //Pawn push
@@ -521,7 +695,31 @@ impl Game {
                 iter_bit >>= 1;
             }
         } else {
-            panic!("No piece in the given position!");
+            panic!("No pawn in the given position!");
+        }
+        moves_bit
+    }
+
+    fn get_knight_moves(&self, position: u64) -> u64 {
+        let mut moves_bit: u64 = 0;
+        let mut iter_bit: u64 =
+            0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+        if position & self.white != 0 {
+            for i in self.knight_moves {
+                if iter_bit == position {
+                    moves_bit |= i & !self.white;
+                }
+                iter_bit >>= 1;
+            }
+        } else if position % self.black != 0 {
+            for i in self.knight_moves {
+                if iter_bit == position {
+                    moves_bit |= i & !self.black;
+                }
+                iter_bit >>= 1;
+            }
+        } else {
+            panic!("No knight in given position!")
         }
         moves_bit
     }
@@ -616,6 +814,29 @@ impl Game {
 
     fn get_queen_moves(&self, position: u64) -> u64 {
         let moves_bit: u64 = self.get_rook_moves(position) | self.get_bishop_moves(position);
+        moves_bit
+    }
+    fn get_king_moves(&self, position: u64) -> u64 {
+        let mut moves_bit: u64 = 0;
+        let mut iter_bit: u64 =
+            0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
+        if position & self.white != 0 {
+            for i in self.king_moves {
+                if iter_bit == position {
+                    moves_bit |= i & !self.white;
+                }
+                iter_bit >>= 1;
+            }
+        } else if position % self.black != 0 {
+            for i in self.king_moves {
+                if iter_bit == position {
+                    moves_bit |= i & !self.black;
+                }
+                iter_bit >>= 1;
+            }
+        } else {
+            panic!("No king in given position!")
+        }
         moves_bit
     }
 
