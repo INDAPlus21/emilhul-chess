@@ -8,18 +8,9 @@ pub enum GameState {
     GameOver,
 }
 
-/* IMPORTANT:
- * - Document well!
- * - Write well structured and clean code!
- *
- * PLAN:
- *  - Bitboard LERF (Little-Endian Rank-File mapping) representation
- */
-
 pub struct Game {
-    /* save board, active colour, ...
-     * Then do checks and pins, porbably pretty easy. Promotion. Add turn timer.
-     *  If I have extra time first fix good representative unit tests,
+    /* Then do checks and pins, porbably pretty easy. Promotion. Add turn timer.
+     * If I have extra time first fix good representative unit tests,
      * then document the code and lastly clean up the code. If all this is done great! Go to sleep, you've earned it :)
      */
     state: GameState,
@@ -641,6 +632,7 @@ impl Game {
             }
             iter_bit >>= 1
         }
+
         moves
     }
 
@@ -838,6 +830,15 @@ impl Game {
             panic!("No king in given position!")
         }
         moves_bit
+    }
+
+    fn attacks_to(&mut self, position: u64) -> u64 {
+        // Place all pieces here for a super piece
+        // Generate moves for super piece and check if there any piece matching the move type
+        // if there are any pieces they attack the position.
+        // REMEMVER TO REMOVE: super piece.
+        // if the given position is a king then you're in check.
+        position
     }
 
     /// Public function that prints the print routine for the board but with the option of including an additional bitboard with an highlight
